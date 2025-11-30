@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>B站字幕查看</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        input, button { font-size: 1em; margin: 0.5em 0; }
+        #result { margin-top: 2em; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h2>B站字幕查看工具</h2>
+    <label>bvid: <input id="bvid" placeholder="如 BV1xxxxxxx"></label><br>
+    <label>auth_key: <input id="auth_key" style="width: 400px" placeholder="字幕API里的auth_key"></label><br>
+    <button onclick="getSubtitle()">获取字幕</button>
+    <div id="result"></div>
+    <script>
+    async function getSubtitle() {
+        const bvid = document.getElementById('bvid').value.trim();
+        const auth_key = document.getElementById('auth_key').value.trim();
+        if (!bvid || !auth_key) {
+            document.getElementById('result').innerText = '请填写bvid和auth_key';
+            return;
+        }
+        try {
+            const resp = await fetch('http://localhost:5001/subtitle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bvid, auth_key })
+            });
+            const data = await resp.json();
+            if (data.error) {
+                document.getElementById('result').innerText = data.error;
+                return;
+            }
+            let text = '';
+            for (const item of data.body) {
+                text += `${item.from} - ${item.to}: ${item.content}\n`;
+            }
+            document.getElementById('result').innerText = text;
+        } catch (e) {
+            document.getElementById('result').innerText = '请求失败：' + e;
+        }
+    }
+    </script>
+</body>
+</html>
